@@ -166,12 +166,16 @@ namespace stroke
             IGeometry r = pGeometryList[0];
             IGeometry s = pGeometryList[0];
             double angle = 2*Math.PI/3;
+            int m = -1;
             for (int i = 0; i < pGeometryList.Count; i++) {
                 for (int j = 0; j <= pGeometryList.Count; j++) {
                     if (j == i) {
                         j++;
                     }
                     if (j == pGeometryList.Count) {
+                        if(i == m){
+                            break;
+                        }
                         IWT.Add(pGeometryList[i]);
                         pGeometryList.RemoveAt(i);
                         i--;
@@ -180,6 +184,9 @@ namespace stroke
                     if (CheckCrosses(pGeometryList[i], pGeometryList[j]))
                     {
                         double a = GetAngle(pGeometryList[i], pGeometryList[j]);
+                        if (a > 2 * Math.PI / 3) {
+                            m = i;
+                        }
                         if (a > angle)
                         {
                             angle = a;
