@@ -11,23 +11,26 @@ using ESRI.ArcGIS.Geodatabase;
 using ESRI.ArcGIS.DataSourcesFile;
 using ESRI.ArcGIS.Geometry;
 using ESRI.ArcGIS.Carto;
+using System.IO;
 
 namespace stroke
 {
     public partial class Form1 : Form
     {
-        string roadDataFullName = string.Empty;
+        string roadDataFullName = string.Empty;//"F:\\stroke\\New_Shapefile.shp"; //
         string shapeFileFullName = string.Empty;
-        IGeometry pGPoint;
+        string SaveFullName = string.Empty;
+        //IGeometry pGPoint;
         List<IGeometry> pGeometryList = new List<IGeometry>();
-        List<IGeometry> IWT = new List<IGeometry>();
+        List<IGeometry> pGeoSave = new List<IGeometry>();
         public Form1()
         {
             InitializeComponent();
         }
 
-        private void btnOpen_Click(object sender, EventArgs e)
+        private void btnOpen_Click(object sender, EventArgs e)//获取文件名
         {
+
             OpenFileDialog pOFD = new OpenFileDialog();
             pOFD.Multiselect = false;
             pOFD.Title = "打开路网文件";
@@ -44,9 +47,94 @@ namespace stroke
 
         private void btnConfirm_Click(object sender, EventArgs e)
         {
-            pGeometryList = this.GetGeometry(roadDataFullName);
-            this.strokeIt(pGeometryList);
+            
+
+            /*for (int i = 0; i < pGeometryList.Count; i++)
+            {
+                for (int j = i + 1; j < pGeometryList.Count; j++)
+                {
+                    IGeometry pGeo1 = pGeometryList[i];
+                    IGeometry pGeo2 = pGeometryList[j];
+                    bool pCross = this.CheckCrosses(pGeo1, pGeo2);
+                    if (pCross)
+                    {
+
+                    }
+                }
+            }*/
         }
+
+        private void btnSave_Click(object sender, EventArgs e)
+        {
+            SaveFileDialog saveFileDialog = new SaveFileDialog();
+            saveFileDialog.Filter = "Shape文件（*.shp)|*.shp";
+            DialogResult dialogResult = saveFileDialog.ShowDialog();
+            if (dialogResult == DialogResult.OK)
+            {
+                SaveFullName = saveFileDialog.FileName;
+            }
+            else
+            {
+                SaveFullName = null;
+                return;
+            }
+            this.textBox2.Text = SaveFullName;
+            this.Save(SaveFullName);
+        }
+
+        private void ChooseRoads(List<IGeometry> pGeo)
+        {
+            IGeometry r = new PolylineClass();
+            IGeometry s = new PolylineClass();
+            double angle = 2 * Math.PI / 3;
+            int m = -1;
+            for (int i = 0; i < pGeometryList.Count; i++)
+            {
+                for (int j = 0; j <= pGeometryList.Count; j++)
+                {
+                    if (j == i)
+                    {
+                        j++;
+                    }
+                    if (j == pGeometryList.Count)
+                    {
+                        if (i == m)
+                        {
+                            break;
+                        }
+                        pGeoSave.Add(pGeometryList[i]);
+                        pGeometryList.RemoveAt(i);
+                        i--;
+                        break;
+                    }
+                    if (CheckCrosses(pGeometryList[i], pGeometryList[j]))
+                    {
+                        double a = GetAngle(pGeometryList[i], pGeometryList[j]);
+                        if (a > 2 * Math.PI / 3)
+                        {
+                            m = i;
+                        }
+                        if (a > angle)
+                        {
+                            angle = a;
+                            r = pGeometryList[i];
+                            s = pGeometryList[j];
+                        }
+                    }
+                }
+            }
+            if (pGeometryList.Count == 0)
+            {
+                return;
+            }
+            ITopologicalOperator wtf = r as ITopologicalOperator;
+            IGeometry road = wtf.Union(s);
+            pGeometryList.Remove(r);
+            pGeometryList.Remove(s);
+            pGeometryList.Add(road);
+            ChooseRoads(pGeometryList);
+        }
+
         private List<IGeometry> GetGeometry(string roadDataFullName)
         {
             List<IGeometry> pGList = new List<IGeometry>();
@@ -66,7 +154,8 @@ namespace stroke
                 int i = pGList.Count;
             }
             return pGList;
-        }
+        }//得到shp文件里的每一个Geometry
+
         private bool CheckCrosses(IGeometry pGeometry1, IGeometry pGeometry2)
         {
 
@@ -74,29 +163,38 @@ namespace stroke
             ITopologicalOperator pTO = pGeometry1 as ITopologicalOperator;
             if (pRO.Touches(pGeometry2))
             {
-                pGPoint = pTO.Intersect(pGeometry2, esriGeometryDimension.esriGeometry0Dimension);
                 return true;
             }
             else
                 return false;
-        }
-        private double GetAngle(IGeometry pGeometry1,IGeometry pGeometry2)
+        }//检查是否相交
+
+        private double GetAngle(IGeometry pGeometry1, IGeometry pGeometry2)
         {
             double pAngle1;
             double pAngle2;
-            double pAngle=0;
+            double pAngle = 0;
 
-            IPolyline pPolyline1=pGeometry1 as IPolyline;
+            IGeometry pGPoint = new PointClass();
+
+            IRelationalOperator pRO = pGeometry1 as IRelationalOperator;
+            ITopologicalOperator pTO = pGeometry1 as ITopologicalOperator;
+
+            if (pRO.Touches(pGeometry2)) {
+                pGPoint = pTO.Intersect(pGeometry2, esriGeometryDimension.esriGeometry0Dimension);
+            }
+
+            IPolyline pPolyline1 = pGeometry1 as IPolyline;
             IPoint pPF1 = pPolyline1.FromPoint;
             IGeometry pGeoPoint1 = pPF1 as IGeometry;
             IRelationalOperator pRO1 = pGeoPoint1 as IRelationalOperator;
             if (pRO1.Contains(pGPoint))
             {
-                pAngle1=this.AngleFromPoint(pGeometry1);
+                pAngle1 = this.AngleFromPoint(pGeometry1);
             }
             else
             {
-                pAngle1=this.AngleToPoint(pGeometry1);
+                pAngle1 = this.AngleToPoint(pGeometry1);
             }
 
             IPolyline pPolyline2 = pGeometry2 as IPolyline;
@@ -120,7 +218,8 @@ namespace stroke
                     pAngle = 2 * Math.PI - pAngle;
             }
             return pAngle;
-        }
+        }//获取相交道路的夹角
+
         private double AngleFromPoint(IGeometry pGeometry)
         {
             ISegmentCollection pSC = pGeometry as ISegmentCollection;//可能用到的东西：FromPoint、ToPoint、EnumCurve、EnumSegments---IEnumSegment
@@ -134,10 +233,11 @@ namespace stroke
             double pAngle = pLine.Angle;
             return pAngle;
 
-        }
+        }//获取夹角的辅助
+
         private double AngleToPoint(IGeometry pGeometry)
         {
-            double pAngle=0;
+            double pAngle = 0;
             ISegmentCollection pSC = pGeometry as ISegmentCollection;//可能用到的东西：FromPoint、ToPoint、EnumCurve、EnumSegments---IEnumSegment
             IEnumSegment pEnumSegment = pSC.EnumSegments;
             pEnumSegment.Reset();
@@ -161,151 +261,51 @@ namespace stroke
             if (a > -Math.PI && a <= 0)
             { pAngle = a + Math.PI; }
             return pAngle;
-        }
-        private void strokeIt(List<IGeometry> pGeometryList) {
-            IGeometry r = pGeometryList[0];
-            IGeometry s = pGeometryList[0];
-            double angle = 2*Math.PI/3;
-            int m = -1;
-            for (int i = 0; i < pGeometryList.Count; i++) {
-                for (int j = 0; j <= pGeometryList.Count; j++) {
-                    if (j == i) {
-                        j++;
-                    }
-                    if (j == pGeometryList.Count) {
-                        if(i == m){
-                            break;
-                        }
-                        IWT.Add(pGeometryList[i]);
-                        pGeometryList.RemoveAt(i);
-                        i--;
-                        break;
-                    }
-                    if (CheckCrosses(pGeometryList[i], pGeometryList[j]))
-                    {
-                        double a = GetAngle(pGeometryList[i], pGeometryList[j]);
-                        if (a > 2 * Math.PI / 3) {
-                            m = i;
-                        }
-                        if (a > angle)
-                        {
-                            angle = a;
-                            r = pGeometryList[i];
-                            s = pGeometryList[j];
-                        }
-                    }                  
-                }
-            }
-            if (pGeometryList.Count == 0)
+        }//获取夹角的辅助
+
+        private void Save(string outfileNamePath)
+        {
+            //打开工作空间
+            int index = outfileNamePath.LastIndexOf('\\');
+            string folder = outfileNamePath.Substring(0, index);
+            SaveFullName= outfileNamePath.Substring(index + 1);
+            IWorkspaceFactory pWSF = new ShapefileWorkspaceFactoryClass();
+            IFeatureWorkspace pFWS = (IFeatureWorkspace)pWSF.OpenFromFile(folder, 0);
+
+
+            if (File.Exists(outfileNamePath))
             {
-                return;
+                IFeatureClass featureClass = pFWS.OpenFeatureClass(SaveFullName);
+                IDataset pDataset = (IDataset)featureClass;
+                pDataset.Delete();
             }
-            ITopologicalOperator wtf = r as ITopologicalOperator;
-            IGeometry road = wtf.Union(s);
-            pGeometryList.RemoveAt(pGeometryList.IndexOf(r));
-            pGeometryList.RemoveAt(pGeometryList.IndexOf(s));
-            pGeometryList.Add(road);            
-            strokeIt(pGeometryList);
+
+
+            IFields pFields = new FieldsClass();
+            IFieldsEdit pFieldsEdit;
+            pFieldsEdit = (IFieldsEdit)pFields;
+            IField pField = new FieldClass();
+            IFieldEdit pFieldEdit = (IFieldEdit)pField;
+            pFieldEdit.Name_2 = "Shape";
+            pFieldEdit.Type_2 = esriFieldType.esriFieldTypeGeometry;
+            //空间参考
+            IGeometryDef pGeometryDef = new GeometryDefClass();
+            IGeometryDefEdit pGDefEdit = (IGeometryDefEdit)pGeometryDef;
+            pGDefEdit.GeometryType_2 = esriGeometryType.esriGeometryPolyline;
+            pFieldEdit.GeometryDef_2 = pGeometryDef;
+            pFieldsEdit.AddField(pField);
+
+            IFeatureClass pFeatureClass;
+            pFeatureClass = pFWS.CreateFeatureClass(SaveFullName, pFields, null, null, esriFeatureType.esriFTSimple, "Shape", "");
+            pGeometryList = this.GetGeometry(roadDataFullName);
+            this.ChooseRoads(pGeometryList);
+            for (int i = 0; i < pGeoSave.Count; i++)
+            {
+                IFeature pFeature = pFeatureClass.CreateFeature();
+                pFeature.Shape = pGeoSave[i];
+                pFeature.Store();
+            }
         }
     }
 }
-        #region GetAngle 方法一
-        /*
-        private double GetAngle(IGeometry pGeometry1, IGeometry pGeometry2)
-        {
-            //ILine pLine1 = pGeometry1 as ILine;//此处对象可以变为IPolyline
-            // IPolyline pPolyline = pGeometry1 as IPolyline;//可能用到的东西：FromPoint、ToPoint
-            double pAngle = 0;
-            double pAngle1 = 0;
-            double pAngle2 = 0;
-            ISegmentCollection pSC = pGeometry1 as ISegmentCollection;//可能用到的东西：FromPoint、ToPoint、EnumCurve、EnumSegments---IEnumSegment
-            IEnumSegment pEnumSegment = pSC.EnumSegments;
-            pEnumSegment.Reset();
-            ISegment pSegment;
-            int partIndex = 0;
-            int segmentIndex = 0;
-            pEnumSegment.Next(out pSegment, ref partIndex, ref segmentIndex);
-            /*
-            object o = Type.Missing;
-            ISegmentCollection pPath = new PathClass();
-            pPath.AddSegment(pSegment, ref o, ref o);
-            IGeometryCollection pPolyline = new PolylineClass();
-            pPolyline.AddGeometry(pPath as IGeometry, ref o, ref o);
-            *//*
-            IGeometry pGS = pSegment as IGeometry;
-            IRelationalOperator pRO = pGS as IRelationalOperator;
-            if (pRO.Contains(pGPoint))
-            {
-                ILine pLine1 = pSegment as ILine;
-                pAngle1 = pLine1.Angle;
-            }
-            else
-            {
-                int i = 0;
-                while (!pEnumSegment.IsLastInPart())
-                {
-                    pEnumSegment.SetAt(0, i);
-                    pEnumSegment.Next(out pSegment, ref partIndex, ref segmentIndex);
-                    i++;
-                }
-                pEnumSegment.SetAt(0, i - 1);
-                pEnumSegment.Next(out pSegment, ref partIndex, ref segmentIndex);
-                ILine pLine1 = pSegment as ILine;
-                double a = pLine1.Angle;
-                if (a > 0 && a <= Math.PI)
-                { pAngle1 = a - Math.PI; }
-                if (a > -Math.PI && a <= 0)
-                { pAngle1 = a + Math.PI; }
-            }
 
-            pSC = pGeometry2 as ISegmentCollection;
-            pEnumSegment = pSC.EnumSegments;
-            pEnumSegment.Reset();
-            pEnumSegment.Next(out pSegment, ref partIndex, ref segmentIndex);
-            pGS = pSegment as IGeometry;
-            pRO = pGS as IRelationalOperator;
-            if (pRO.Contains(pGPoint))
-            {
-                ILine pLine2 = pSegment as ILine;
-                pAngle2 = pLine2.Angle;
-            }
-            else
-            {
-                int i = 0;
-                while (!pEnumSegment.IsLastInPart())
-                {
-                    pEnumSegment.SetAt(0, i);
-                    pEnumSegment.Next(out pSegment, ref partIndex, ref segmentIndex);
-                    i++;
-                }
-                pEnumSegment.SetAt(0, i - 1);
-                pEnumSegment.Next(out pSegment, ref partIndex, ref segmentIndex);
-                ILine pLine2 = pSegment as ILine;
-                double a = pLine2.Angle;
-                if (a > 0 && a <= Math.PI)
-                { pAngle2 = a - Math.PI; }
-                if (a > -Math.PI && a <= 0)
-                { pAngle2 = a + Math.PI; }
-            }
-
-            if ((pAngle1 * pAngle2) >= 0)
-                pAngle = Math.Abs(pAngle2 - pAngle1);
-            if ((pAngle1 * pAngle2) < 0)
-            {
-                pAngle = Math.Abs(pAngle1) + Math.Abs(pAngle2);
-                if (pAngle > Math.PI)
-                    pAngle = 2 * Math.PI - pAngle;
-            }
-           // return pAngle;
-            /*将一个要素可视化，需要建立一个内存工作空间
-            IFeatureClass pFeatureClass=new FeatureClass() as IFeatureClass ;
-            IFeature pFeature = pFeatureClass.CreateFeature();
-            pFeature = pSegment as IFeature;
-            IFeatureLayer pFeatureLayer = new FeatureLayerClass();
-            pFeatureLayer.FeatureClass = pFeatureClass;
-            axMapControl1.AddLayer(pFeatureLayer);
-            axMapControl1.Refresh();
-            */
-        //}
-        #endregion
-   

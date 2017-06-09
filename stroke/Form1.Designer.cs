@@ -34,6 +34,8 @@
             this.btnOpen = new System.Windows.Forms.Button();
             this.textBox1 = new System.Windows.Forms.TextBox();
             this.btnConfirm = new System.Windows.Forms.Button();
+            this.textBox2 = new System.Windows.Forms.TextBox();
+            this.btnSave = new System.Windows.Forms.Button();
             ((System.ComponentModel.ISupportInitialize)(this.axLicenseControl1)).BeginInit();
             ((System.ComponentModel.ISupportInitialize)(this.axMapControl1)).BeginInit();
             this.SuspendLayout();
@@ -49,7 +51,7 @@
             // 
             // axMapControl1
             // 
-            this.axMapControl1.Location = new System.Drawing.Point(69, 87);
+            this.axMapControl1.Location = new System.Drawing.Point(69, 160);
             this.axMapControl1.Name = "axMapControl1";
             this.axMapControl1.OcxState = ((System.Windows.Forms.AxHost.State)(resources.GetObject("axMapControl1.OcxState")));
             this.axMapControl1.Size = new System.Drawing.Size(509, 397);
@@ -74,7 +76,7 @@
             // 
             // btnConfirm
             // 
-            this.btnConfirm.Location = new System.Drawing.Point(648, 119);
+            this.btnConfirm.Location = new System.Drawing.Point(649, 87);
             this.btnConfirm.Name = "btnConfirm";
             this.btnConfirm.Size = new System.Drawing.Size(109, 54);
             this.btnConfirm.TabIndex = 4;
@@ -82,12 +84,31 @@
             this.btnConfirm.UseVisualStyleBackColor = true;
             this.btnConfirm.Click += new System.EventHandler(this.btnConfirm_Click);
             // 
+            // textBox2
+            // 
+            this.textBox2.Location = new System.Drawing.Point(69, 87);
+            this.textBox2.Name = "textBox2";
+            this.textBox2.Size = new System.Drawing.Size(509, 28);
+            this.textBox2.TabIndex = 3;
+            // 
+            // btnSave
+            // 
+            this.btnSave.Location = new System.Drawing.Point(651, 160);
+            this.btnSave.Name = "btnSave";
+            this.btnSave.Size = new System.Drawing.Size(109, 28);
+            this.btnSave.TabIndex = 5;
+            this.btnSave.Text = "保存";
+            this.btnSave.UseVisualStyleBackColor = true;
+            this.btnSave.Click += new System.EventHandler(this.btnSave_Click);
+            // 
             // Form1
             // 
             this.AutoScaleDimensions = new System.Drawing.SizeF(9F, 18F);
             this.AutoScaleMode = System.Windows.Forms.AutoScaleMode.Font;
             this.ClientSize = new System.Drawing.Size(840, 569);
+            this.Controls.Add(this.btnSave);
             this.Controls.Add(this.btnConfirm);
+            this.Controls.Add(this.textBox2);
             this.Controls.Add(this.textBox1);
             this.Controls.Add(this.btnOpen);
             this.Controls.Add(this.axMapControl1);
@@ -108,6 +129,8 @@
         private System.Windows.Forms.Button btnOpen;
         private System.Windows.Forms.TextBox textBox1;
         private System.Windows.Forms.Button btnConfirm;
+        private System.Windows.Forms.TextBox textBox2;
+        private System.Windows.Forms.Button btnSave;
     }
 }
 

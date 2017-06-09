@@ -16,12 +16,3 @@ C:\Users\tzh\Desktop\stroke\stroke\obj\Debug\stroke.csprojResolveAssemblyReferen
 C:\Users\tzh\Desktop\stroke\stroke\obj\Debug\stroke.Form1.resources
 C:\Users\tzh\Desktop\stroke\stroke\obj\Debug\stroke.Properties.Resources.resources
 C:\Users\tzh\Desktop\stroke\stroke\obj\Debug\stroke.csproj.GenerateResource.Cache
-D:\code\stroke\stroke\bin\Debug\stroke.exe.config
-D:\code\stroke\stroke\obj\Debug\stroke.exe
-D:\code\stroke\stroke\obj\Debug\stroke.pdb
-D:\code\stroke\stroke\bin\Debug\stroke.exe
-D:\code\stroke\stroke\bin\Debug\stroke.pdb
-D:\code\stroke\stroke\obj\Debug\stroke.csprojResolveAssemblyReference.cache
-D:\code\stroke\stroke\obj\Debug\stroke.Form1.resources
-D:\code\stroke\stroke\obj\Debug\stroke.Properties.Resources.resources
-D:\code\stroke\stroke\obj\Debug\stroke.csproj.GenerateResource.Cache
