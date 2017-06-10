@@ -135,6 +135,64 @@ namespace stroke
             ChooseRoads(pGeometryList);
         }
 
+        private List<IGeometry> strokeIt(List<IGeometry> pGeo)
+        {
+            List<List<double>> indexes = new List<List<double>>();
+            List<List<int>> mummy = new List<List<int>>();
+            List<IGeometry> pGeoSave = new List<IGeometry>();
+            List<IGeometry> GeoList = new List<IGeometry>();
+            double angle = 2 * Math.PI / 3;
+            for (int i = 0; i < pGeo.Count; i++)
+            {
+                mummy.Add(new List<int>() { i });
+                pGeoSave.Add(pGeo[i]);
+                GeoList.Add(pGeo[i]);
+                for (int j = i + 1; j < pGeo.Count; j++)
+                {
+                    if (CheckCrosses(pGeo[i], pGeo[j]))
+                    {
+                        double a = GetAngle(pGeo[i], pGeo[j]);
+                        if (a > angle)
+                        {
+                            List<double> index = new List<double>();
+                            index.Add(i * 1.0);
+                            index.Add(j * 1.0);
+                            index.Add(a);
+                            indexes.Add(index);
+                        }
+                    }
+                }
+            }
+            indexes.Sort((x, y) => x[2].CompareTo(y[2]));
+
+            for (int k = 0; k < indexes.Count; k++)
+            {
+                List<double> index = indexes[k];
+                int i = Convert.ToInt32(index[0]);
+                int j = Convert.ToInt32(index[1]);
+                List<int> I = mummy.Find(x => x[0] == i);
+                List<int> J = mummy.Find(x => x[0] == j);
+                IGeometry r = GeoList[I[I.Count - 1]];
+                IGeometry s = GeoList[J[J.Count - 1]];
+                if (CheckCrosses(r, s) && GetAngle(r, s) > angle) {
+                    ITopologicalOperator wtf = r as ITopologicalOperator;
+                    IGeometry road = wtf.Union(s);
+                    pGeoSave.Remove(r);
+                    pGeoSave.Remove(s);
+                    pGeoSave.Add(road);
+                    GeoList.Add(road);
+                    int a = mummy.IndexOf(I);
+                    int b = mummy.IndexOf(J);
+                    I.Add(GeoList.Count - 1);
+                    J.Add(GeoList.Count - 1);
+                    mummy[a] = I;
+                    mummy[b] = J;
+                }                
+            }
+
+            return pGeoSave;
+        }
+
         private List<IGeometry> GetGeometry(string roadDataFullName)
         {
             List<IGeometry> pGList = new List<IGeometry>();
@@ -158,15 +216,8 @@ namespace stroke
 
         private bool CheckCrosses(IGeometry pGeometry1, IGeometry pGeometry2)
         {
-
             IRelationalOperator pRO = pGeometry1 as IRelationalOperator;
-            ITopologicalOperator pTO = pGeometry1 as ITopologicalOperator;
-            if (pRO.Touches(pGeometry2))
-            {
-                return true;
-            }
-            else
-                return false;
+            return pRO.Touches(pGeometry2);
         }//检查是否相交
 
         private double GetAngle(IGeometry pGeometry1, IGeometry pGeometry2)
@@ -298,7 +349,7 @@ namespace stroke
             IFeatureClass pFeatureClass;
             pFeatureClass = pFWS.CreateFeatureClass(SaveFullName, pFields, null, null, esriFeatureType.esriFTSimple, "Shape", "");
             pGeometryList = this.GetGeometry(roadDataFullName);
-            this.ChooseRoads(pGeometryList);
+            pGeoSave = strokeIt(pGeometryList);
             for (int i = 0; i < pGeoSave.Count; i++)
             {
                 IFeature pFeature = pFeatureClass.CreateFeature();
