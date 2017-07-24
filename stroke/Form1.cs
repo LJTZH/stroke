@@ -144,7 +144,7 @@ namespace stroke
             double angle = 2 * Math.PI / 3;
             for (int i = 0; i < pGeo.Count; i++)
             {
-                mummy.Add(new List<int>() { i });
+                mummy.Add(new List<int> { i });
                 pGeoSave.Add(pGeo[i]);
                 GeoList.Add(pGeo[i]);
                 for (int j = i + 1; j < pGeo.Count; j++)
@@ -163,7 +163,7 @@ namespace stroke
                     }
                 }
             }
-            indexes.Sort((x, y) => x[2].CompareTo(y[2]));
+            indexes.Sort((x, y) => y[2].CompareTo(x[2]));
 
             for (int k = 0; k < indexes.Count; k++)
             {
@@ -172,22 +172,21 @@ namespace stroke
                 int j = Convert.ToInt32(index[1]);
                 List<int> I = mummy.Find(x => x[0] == i);
                 List<int> J = mummy.Find(x => x[0] == j);
-                IGeometry r = GeoList[I[I.Count - 1]];
-                IGeometry s = GeoList[J[J.Count - 1]];
-                if (CheckCrosses(r, s) && GetAngle(r, s) > angle) {
+                i = I[I.Count - 1];
+                j = J[J.Count - 1];
+                IGeometry r = GeoList[i];
+                IGeometry s = GeoList[j];
+                if (CheckCrosses(r, s) && GetAngle(r, s) > angle)
+                {
                     ITopologicalOperator wtf = r as ITopologicalOperator;
                     IGeometry road = wtf.Union(s);
-                    pGeoSave.Remove(r);
-                    pGeoSave.Remove(s);
+                    pGeoSave.RemoveAt(pGeoSave.IndexOf(r));
+                    pGeoSave.RemoveAt(pGeoSave.IndexOf(s));
                     pGeoSave.Add(road);
                     GeoList.Add(road);
-                    int a = mummy.IndexOf(I);
-                    int b = mummy.IndexOf(J);
-                    I.Add(GeoList.Count - 1);
-                    J.Add(GeoList.Count - 1);
-                    mummy[a] = I;
-                    mummy[b] = J;
-                }                
+                    List<List<int>> shabi = mummy.FindAll(x => (x[x.Count - 1] == i || x[x.Count - 1] == j));
+                    shabi.ForEach(x => x.Add(GeoList.Count - 1));
+                }
             }
 
             return pGeoSave;
